@@ -1208,7 +1208,7 @@ if(WITH_BENCHMARK_TOOLS)
     tools/db_bench.cc
     tools/db_bench_tool.cc)
   target_link_libraries(db_bench
-    ${ROCKSDB_LIB})
+    ${ROCKSDB_LIB} ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
 
   add_executable(cache_bench
     cache/cache_bench.cc)
@@ -1218,7 +1218,7 @@ if(WITH_BENCHMARK_TOOLS)
   add_executable(memtablerep_bench
     memtable/memtablerep_bench.cc)
   target_link_libraries(memtablerep_bench
-    ${ROCKSDB_LIB})
+    ${ROCKSDB_LIB} ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
 
   add_executable(range_del_aggregator_bench
     db/range_del_aggregator_bench.cc)
