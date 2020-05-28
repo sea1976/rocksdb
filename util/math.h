@@ -16,10 +16,17 @@ namespace ROCKSDB_NAMESPACE {
 template <typename T>
 inline int BitsSetToOne(T v) {
   static_assert(std::is_integral<T>::value, "non-integral type");
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
   static_assert(sizeof(T) <= sizeof(uint64_t), "type too big");
   if (sizeof(T) > sizeof(uint32_t)) {
+#if defined(_WIN64)
     return static_cast<int>(__popcnt64(static_cast<uint64_t>(v)));
+#else
+  uint32_t x, y;
+  x = (uint32_t)((v & 0xFFFFFFFF00000000LL) >> 32);
+  y = (uint32_t)(v & 0xFFFFFFFFLL);
+  return BitsSetToOne(x) + BitsSetToOne(y);
+#endif
   } else {
     return static_cast<int>(__popcnt(static_cast<uint32_t>(v)));
   }
