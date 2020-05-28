@@ -88,13 +88,10 @@ if( NOT DEFINED CMAKE_CXX_STANDARD )
 endif()
 
 include(CMakeDependentOption)
-CMAKE_DEPENDENT_OPTION(WITH_GFLAGS "build with GFlags" ON
-  "NOT MSVC;NOT MINGW" OFF)
 
-if(MSVC)
   option(WITH_XPRESS "build with windows built in compression" OFF)
   include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty.inc)
-else()
+
   if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
     # FreeBSD has jemalloc as default malloc
     # but it does not have all the jemalloc files in include/...
@@ -165,7 +162,6 @@ else()
     include_directories(${ZSTD_INCLUDE_DIR})
     list(APPEND THIRDPARTY_LIBS zstd::zstd)
   endif()
-endif()
 
 string(TIMESTAMP TS "%Y/%m/%d %H:%M:%S" UTC)
 set(GIT_DATE_TIME "${TS}" CACHE STRING "the time we first built rocksdb")

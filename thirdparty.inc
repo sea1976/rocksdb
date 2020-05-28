@@ -7,7 +7,13 @@
 # Set environment variable THIRDPARTY_HOME to point to your third party libraries home (Unix style dir separators)
 # or change the paths below to reflect where the libraries actually reside
 #
-set (THIRDPARTY_LIBS "")         # Initialization, don't touch
+
+if (THIRDPARTY_IN_INSTALL_PREFIX)
+  include_directories(${CMAKE_INSTALL_PREFIX}/include)
+  link_directories({CMAKE_INSTALL_PREFIX}/lib)
+else()
+  set (THIRDPARTY_LIBS "")         # Initialization, don't touch  
+endif()
 
 #
 # Defaults
@@ -25,7 +31,9 @@ endif ()
 
 if (WITH_GFLAGS)
   message(STATUS "GFLAGS library is enabled")
-  
+  set(GFLAGS_CXX_FLAGS -DGFLAGS=gflags)
+
+if (NOT THIRDPARTY_IN_INSTALL_PREFIX)
   if(DEFINED ENV{GFLAGS_INCLUDE})
     set(GFLAGS_INCLUDE $ENV{GFLAGS_INCLUDE})
   endif()
@@ -38,12 +46,13 @@ if (WITH_GFLAGS)
     set(GFLAGS_LIB_RELEASE $ENV{GFLAGS_LIB_RELEASE})
   endif()
   
-  set(GFLAGS_CXX_FLAGS -DGFLAGS=gflags)
   set(GFLAGS_LIBS debug ${GFLAGS_LIB_DEBUG} optimized ${GFLAGS_LIB_RELEASE})
 
   add_definitions(${GFLAGS_CXX_FLAGS})
   include_directories(${GFLAGS_INCLUDE})
   set (THIRDPARTY_LIBS ${THIRDPARTY_LIBS} ${GFLAGS_LIBS})
+endif()
+  
 else ()
   message(STATUS "GFLAGS library is disabled")
 endif ()
@@ -104,25 +113,30 @@ endif ()
 
 if (WITH_LZ4)
   message(STATUS "LZ4 library is enabled")
-  
-  if(DEFINED ENV{LZ4_INCLUDE})
-    set(LZ4_INCLUDE $ENV{LZ4_INCLUDE})
-  endif()
-  
-  if(DEFINED ENV{LZ4_LIB_DEBUG})
-    set(LZ4_LIB_DEBUG $ENV{LZ4_LIB_DEBUG})
-  endif()
-
-  if(DEFINED ENV{LZ4_LIB_RELEASE})
-    set(LZ4_LIB_RELEASE $ENV{LZ4_LIB_RELEASE})
-  endif()
-  
   set(LZ4_CXX_FLAGS -DLZ4)
-  set(LZ4_LIBS debug ${LZ4_LIB_DEBUG} optimized ${LZ4_LIB_RELEASE})
-
-  add_definitions(${LZ4_CXX_FLAGS})
-  include_directories(${LZ4_INCLUDE})
-  set (THIRDPARTY_LIBS ${THIRDPARTY_LIBS} ${LZ4_LIBS})
+  set(lz4_ROOT_DIR {CMAKE_INSTALL_PREFIX})
+  
+  if (NOT THIRDPARTY_IN_INSTALL_PREFIX)
+  
+    if(DEFINED ENV{LZ4_INCLUDE})
+      set(LZ4_INCLUDE $ENV{LZ4_INCLUDE})
+    endif()
+    
+    if(DEFINED ENV{LZ4_LIB_DEBUG})
+      set(LZ4_LIB_DEBUG $ENV{LZ4_LIB_DEBUG})
+    endif()
+  
+    if(DEFINED ENV{LZ4_LIB_RELEASE})
+      set(LZ4_LIB_RELEASE $ENV{LZ4_LIB_RELEASE})
+    endif()
+    
+    set(LZ4_LIBS debug ${LZ4_LIB_DEBUG} optimized ${LZ4_LIB_RELEASE})
+  
+    add_definitions(${LZ4_CXX_FLAGS})
+    include_directories(${LZ4_INCLUDE})
+    set (THIRDPARTY_LIBS ${THIRDPARTY_LIBS} ${LZ4_LIBS})
+  
+  endif()
 else ()
   message(STATUS "LZ4 library is disabled")
 endif ()

@@ -10,7 +10,7 @@ find_path(lz4_INCLUDE_DIRS
   HINTS ${lz4_ROOT_DIR}/include)
 
 find_library(lz4_LIBRARIES
-  NAMES lz4
+  NAMES liblz4_static.a liblz4_static.lib lz4_static lz4
   HINTS ${lz4_ROOT_DIR}/lib)
 
 include(FindPackageHandleStandardArgs)
