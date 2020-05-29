@@ -260,8 +260,10 @@ else()
   if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
   else()
-    if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)64" AND NOT HAS_ARMV8_CRC)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+    if (NOT DISABLE_MARCH_NATIVE)
+	    if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)64" AND NOT HAS_ARMV8_CRC)
+	      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+	    endif()
     endif()
   endif()
 endif()
@@ -430,6 +432,7 @@ endif()
 
 option(ROCKSDB_LITE "Build RocksDBLite version" OFF)
 if(ROCKSDB_LITE)
+  message(STATUS "Building ROCKSDB_LITE")
   add_definitions(-DROCKSDB_LITE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -Os")
 endif()
@@ -1213,7 +1216,7 @@ if(WITH_BENCHMARK_TOOLS)
   add_executable(cache_bench
     cache/cache_bench.cc)
   target_link_libraries(cache_bench
-    ${ROCKSDB_LIB})
+    ${ROCKSDB_LIB} ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
 
   add_executable(memtablerep_bench
     memtable/memtablerep_bench.cc)
@@ -1223,12 +1226,12 @@ if(WITH_BENCHMARK_TOOLS)
   add_executable(range_del_aggregator_bench
     db/range_del_aggregator_bench.cc)
   target_link_libraries(range_del_aggregator_bench
-    ${ROCKSDB_LIB})
+    ${ROCKSDB_LIB} ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
 
   add_executable(table_reader_bench
     table/table_reader_bench.cc)
   target_link_libraries(table_reader_bench
-    ${ROCKSDB_LIB} testharness)
+    ${ROCKSDB_LIB} testharness ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
 
   add_executable(filter_bench
     util/filter_bench.cc)

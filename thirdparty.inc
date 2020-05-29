@@ -9,8 +9,9 @@
 #
 
 if (THIRDPARTY_IN_INSTALL_PREFIX)
-  include_directories(${CMAKE_INSTALL_PREFIX}/include)
-  link_directories({CMAKE_INSTALL_PREFIX}/lib)
+  message (STATUS "Third party in ${CMAKE_INSTALL_PREFIX}")
+  include_directories(${include_directories} ${CMAKE_INSTALL_PREFIX}/include)
+  link_directories(${link_directories} ${CMAKE_INSTALL_PREFIX}/lib)
 else()
   set (THIRDPARTY_LIBS "")         # Initialization, don't touch  
 endif()
