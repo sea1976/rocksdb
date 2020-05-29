@@ -46,6 +46,17 @@
 #define F_SET_RW_HINT (F_LINUX_SPECIFIC_BASE + 12)
 #endif
 
+#ifdef IOS_FDATASYNC_WRAPPER
+static int fdatasync(int fd)
+{
+    return fcntl(fd, F_FULLFSYNC);
+}
+#endif
+
+#ifdef IOS_FREAD_UNLOCKED_WRAPPER
+#define fread_unlocked fread
+#endif
+
 namespace ROCKSDB_NAMESPACE {
 
 std::string IOErrorMsg(const std::string& context,

@@ -155,10 +155,11 @@ class PosixFileSystem : public FileSystem {
 #ifdef ROCKSDB_LITE
       return IOStatus::IOError(fname,
                                "Direct I/O not supported in RocksDB lite");
-#endif  // !ROCKSDB_LITE
+#else
 #if !defined(OS_MACOSX) && !defined(OS_OPENBSD) && !defined(OS_SOLARIS)
       flags |= O_DIRECT;
 #endif
+#endif  // !ROCKSDB_LITE
     }
 
     do {
@@ -209,11 +210,12 @@ class PosixFileSystem : public FileSystem {
 #ifdef ROCKSDB_LITE
       return IOStatus::IOError(fname,
                                "Direct I/O not supported in RocksDB lite");
-#endif  // !ROCKSDB_LITE
+#else
 #if !defined(OS_MACOSX) && !defined(OS_OPENBSD) && !defined(OS_SOLARIS)
       flags |= O_DIRECT;
       TEST_SYNC_POINT_CALLBACK("NewRandomAccessFile:O_DIRECT", &flags);
 #endif
+#endif  // !ROCKSDB_LITE
     }
 
     do {
@@ -284,11 +286,12 @@ class PosixFileSystem : public FileSystem {
 #ifdef ROCKSDB_LITE
       return IOStatus::IOError(fname,
                                "Direct I/O not supported in RocksDB lite");
-#endif  // ROCKSDB_LITE
+#else
       flags |= O_WRONLY;
 #if !defined(OS_MACOSX) && !defined(OS_OPENBSD) && !defined(OS_SOLARIS)
       flags |= O_DIRECT;
 #endif
+#endif  // !ROCKSDB_LITE
       TEST_SYNC_POINT_CALLBACK("NewWritableFile:O_DIRECT", &flags);
     } else if (options.use_mmap_writes) {
       // non-direct I/O
@@ -383,11 +386,12 @@ class PosixFileSystem : public FileSystem {
 #ifdef ROCKSDB_LITE
       return IOStatus::IOError(fname,
                                "Direct I/O not supported in RocksDB lite");
-#endif  // !ROCKSDB_LITE
+#else
       flags |= O_WRONLY;
 #if !defined(OS_MACOSX) && !defined(OS_OPENBSD) && !defined(OS_SOLARIS)
       flags |= O_DIRECT;
 #endif
+#endif  // !ROCKSDB_LITE
       TEST_SYNC_POINT_CALLBACK("NewWritableFile:O_DIRECT", &flags);
     } else if (options.use_mmap_writes) {
       // mmap needs O_RDWR mode

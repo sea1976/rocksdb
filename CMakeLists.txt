@@ -430,6 +430,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin-memcmp")
 endif()
 
+if (BUILD_IOS)
+    add_definitions(-DBUILD_IOS -DIOS_FDATASYNC_WRAPPER -DIOS_FREAD_UNLOCKED_WRAPPER)
+endif()
+
 option(ROCKSDB_LITE "Build RocksDBLite version" OFF)
 if(ROCKSDB_LITE)
   message(STATUS "Building ROCKSDB_LITE")

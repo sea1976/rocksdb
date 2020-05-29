@@ -439,7 +439,28 @@ static bool isPCLMULQDQ() {
 #endif
 }
 
+#else
+
+static bool isSSE42() {
+    return false;
+}
+
+static bool isPCLMULQDQ() {
+    return false;
+}
+
 #endif  // HAVE_POWER8
+
+#else
+
+static bool isSSE42() {
+    return true;
+}
+
+static bool isPCLMULQDQ() {
+    return true;
+}
+
 #endif  // HAVE_ARM64_CRC
 
 typedef uint32_t (*Function)(uint32_t, const char*, size_t);

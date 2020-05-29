@@ -61,7 +61,11 @@
 #include <string>
 
 #ifndef PLATFORM_IS_LITTLE_ENDIAN
+#ifdef BUILD_IOS
+#define PLATFORM_IS_LITTLE_ENDIAN (__BYTE_ORDER__ == __LITTLE_ENDIAN__)
+#else
 #define PLATFORM_IS_LITTLE_ENDIAN (__BYTE_ORDER == __LITTLE_ENDIAN)
+#endif
 #endif
 
 #if defined(OS_MACOSX) || defined(OS_SOLARIS) || defined(OS_FREEBSD) ||\
