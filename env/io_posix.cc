@@ -30,6 +30,9 @@
 #include <sys/syscall.h>
 #include <sys/sysmacros.h>
 #endif
+#ifdef OS_ANDROID
+#include <sys/statfs.h>
+#endif
 #include "monitoring/iostats_context_imp.h"
 #include "port/port.h"
 #include "rocksdb/slice.h"
