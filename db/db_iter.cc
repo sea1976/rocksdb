@@ -223,11 +223,13 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
 
     is_key_seqnum_zero_ = (ikey_.sequence == 0);
 
-    assert(iterate_upper_bound_ == nullptr || iter_.MayBeOutOfUpperBound() ||
+    assert(iterate_upper_bound_ == nullptr ||
+           iter_.UpperBoundCheckResult() != IterBoundCheck::kInbound ||
            user_comparator_.CompareWithoutTimestamp(
                ikey_.user_key, /*a_has_ts=*/true, *iterate_upper_bound_,
                /*b_has_ts=*/false) < 0);
-    if (iterate_upper_bound_ != nullptr && iter_.MayBeOutOfUpperBound() &&
+    if (iterate_upper_bound_ != nullptr &&
+        iter_.UpperBoundCheckResult() != IterBoundCheck::kInbound &&
         user_comparator_.CompareWithoutTimestamp(
             ikey_.user_key, /*a_has_ts=*/true, *iterate_upper_bound_,
             /*b_has_ts=*/false) >= 0) {
@@ -246,11 +248,10 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
     }
 
     assert(ikey_.user_key.size() >= timestamp_size_);
-    Slice ts;
+    Slice ts = timestamp_size_ > 0 ? ExtractTimestampFromUserKey(
+                                         ikey_.user_key, timestamp_size_)
+                                   : Slice();
     bool more_recent = false;
-    if (timestamp_size_ > 0) {
-      ts = ExtractTimestampFromUserKey(ikey_.user_key, timestamp_size_);
-    }
     if (IsVisible(ikey_.sequence, ts, &more_recent)) {
       // If the previous entry is of seqnum 0, the current entry will not
       // possibly be skipped. This condition can potentially be relaxed to
@@ -258,7 +259,7 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
       // prone to bugs causing the same user key with the same sequence number.
       // Note that with current timestamp implementation, the same user key can
       // have different timestamps and zero sequence number on the bottommost
-      // level. This will change in the future.
+      // level. This may change in the future.
       if ((!is_prev_key_seqnum_zero || timestamp_size_ > 0) &&
           skipping_saved_key &&
           CompareKeyForSkip(ikey_.user_key, saved_key_.GetUserKey()) <= 0) {
@@ -276,6 +277,7 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
         reseek_done = false;
         switch (ikey_.type) {
           case kTypeDeletion:
+          case kTypeDeletionWithTimestamp:
           case kTypeSingleDeletion:
             // Arrange to skip all upcoming entries for this key since
             // they are hidden by this deletion.
@@ -284,7 +286,20 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
             // 2) return ikey only if ikey.seqnum >= start_seqnum_
             // note that if deletion seqnum is < start_seqnum_ we
             // just skip it like in normal iterator.
-            if (start_seqnum_ > 0 && ikey_.sequence >= start_seqnum_)  {
+            if (start_seqnum_ > 0) {
+              if (ikey_.sequence >= start_seqnum_) {
+                saved_key_.SetInternalKey(ikey_);
+                valid_ = true;
+                return true;
+              } else {
+                saved_key_.SetUserKey(
+                    ikey_.user_key,
+                    !pin_thru_lifetime_ ||
+                        !iter_.iter()->IsKeyPinned() /* copy */);
+                skipping_saved_key = true;
+                PERF_COUNTER_ADD(internal_delete_skipped_count, 1);
+              }
+            } else if (timestamp_lb_) {
               saved_key_.SetInternalKey(ikey_);
               valid_ = true;
               return true;
@@ -299,10 +314,8 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
           case kTypeValue:
           case kTypeBlobIndex:
             if (start_seqnum_ > 0) {
-              // we are taking incremental snapshot here
-              // incremental snapshots aren't supported on DB with range deletes
-              assert(ikey_.type != kTypeBlobIndex);
               if (ikey_.sequence >= start_seqnum_) {
+                assert(ikey_.type != kTypeBlobIndex);
                 saved_key_.SetInternalKey(ikey_);
                 valid_ = true;
                 return true;
@@ -315,6 +328,10 @@ bool DBIter::FindNextUserEntryInternal(bool skipping_saved_key,
                         !iter_.iter()->IsKeyPinned() /* copy */);
                 skipping_saved_key = true;
               }
+            } else if (timestamp_lb_) {
+              saved_key_.SetInternalKey(ikey_);
+              valid_ = true;
+              return true;
             } else {
               saved_key_.SetUserKey(
                   ikey_.user_key, !pin_thru_lifetime_ ||
