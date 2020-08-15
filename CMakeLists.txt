@@ -829,11 +829,14 @@ if(WIN32)
     port/win/env_default.cc
     port/win/port_win.cc
     port/win/win_logger.cc)
-  if(NOT MINGW)
+  if(NOT MINGW OR MINGW_NO_POSIX_THREAD)
     # Mingw only supports std::thread when using
     # posix threads.
     list(APPEND SOURCES
       port/win/win_thread.cc)
+  endif()
+  if (MINGW_NO_POSIX_THREAD)
+    add_definitions(-DMINGW_NO_POSIX_THREAD)
   endif()
 if(WITH_XPRESS)
   list(APPEND SOURCES

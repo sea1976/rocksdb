@@ -220,7 +220,7 @@ class CondVar {
 };
 
 
-#ifdef _POSIX_THREADS
+#if defined(_POSIX_THREADS) && !defined(MINGW_NO_POSIX_THREAD)
 using Thread = std::thread;
 #else
 // Wrapper around the platform efficient
